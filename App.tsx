@@ -1,13 +1,40 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import * as Location from "expo-location";
+
 import { ScrollView, View, StyleSheet, Text, Dimensions } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function App() {
+    const [city, setCity] = useState<string>("Loading...");
+    const [location, setLocation] = useState();
+    const [ok, setOk] = useState<boolean>(true);
+
+    const ask = async () => {
+        const { granted } = await Location.requestForegroundPermissionsAsync();
+        if (!granted) {
+            setOk(false);
+        }
+        const {
+            coords: { latitude, longitude },
+        } = await Location.getCurrentPositionAsync({
+            accuracy: 5,
+        });
+        const location = await Location.reverseGeocodeAsync(
+            { latitude, longitude },
+            { useGoogleMaps: false }
+        );
+        setCity(location[0].city || "");
+    };
+
+    useEffect(() => {
+        ask();
+    }, []);
+
     return (
         <View style={styles.container}>
             <View style={styles.city}>
-                <Text style={styles.cityName}>Seoul</Text>
+                <Text style={styles.cityName}>{city}</Text>
             </View>
             <ScrollView
                 horizontal
@@ -47,7 +74,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     cityName: {
-        fontSize: 68,
+        fontSize: 50,
         fontWeight: "600",
     },
     weather: {},
