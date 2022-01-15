@@ -2,15 +2,15 @@ import React, { useState, useEffect } from "react";
 import * as Location from "expo-location";
 
 import { ScrollView, View, StyleSheet, Text, Dimensions } from "react-native";
-
+import { WEATHER_API_KEY } from "@env";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function App() {
     const [city, setCity] = useState<string>("Loading...");
-    const [location, setLocation] = useState();
+    const [days, setDays] = useState([]);
     const [ok, setOk] = useState<boolean>(true);
 
-    const ask = async () => {
+    const getWeather = async () => {
         const { granted } = await Location.requestForegroundPermissionsAsync();
         if (!granted) {
             setOk(false);
@@ -25,10 +25,15 @@ export default function App() {
             { useGoogleMaps: false }
         );
         setCity(location[0].city || "");
+        const response = await fetch(
+            `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=alerts&appid=${WEATHER_API_KEY}`
+        );
+        const json = await response.json();
+        console.log(json);
     };
 
     useEffect(() => {
-        ask();
+        getWeather();
     }, []);
 
     return (
